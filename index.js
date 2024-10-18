@@ -3,10 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 
-// mongodb+srv://madridistapratish7:<db_password>@fullstack-blog.kgce4.mongodb.net/?retryWrites=true&w=majority&appName=fullstack-blog
-// pratish
+
 const PORT = process.env.PORT || 3000;
 
+app.set('view engine', 'ejs')
 
 const connectToDb = async()=>{
     try {
@@ -19,6 +19,15 @@ const connectToDb = async()=>{
     }
 }
 connectToDb()
+
+app.get('/auth/login', (req,res)=>{
+    res.render('login')
+})
+
+app.get('/auth/register', (req,res)=>{
+    res.render('register')
+})
+
 app.listen(PORT, ()=>{
     console.log(`Server is running in http://localhost:${PORT}`);
 })
