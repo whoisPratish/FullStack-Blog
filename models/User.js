@@ -1,4 +1,3 @@
-const { timeStamp } = require('console')
 const mongoose = require('mongoose')
 const { type } = require('os')
 
@@ -12,6 +11,7 @@ const UserSchema = mongoose.Schema(
         email: {
             type: String,
             trim: true,
+            unique : true,
             required: true
         },
         password: {
