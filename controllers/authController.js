@@ -1,45 +1,72 @@
 const User = require("../models/User");
+const bcrypt = require('bcryptjs');
+const passport = require('passport');
+
 
 exports.getLogin = (req,res)=>{
-    res.render('login')
+    res.render('login', {
+        title : 'Login',
+        error : '',
+        user : req.user
+    })
+    
 }
 
 exports.getRegister = (req,res)=>{
-    res.render('register')
+    res.render('register', {
+        title: 'Register',
+        user : req.user,
+        error : ''
+    });
+   
 }
 
-exports.login = async(req,res)=>{
-    const {email, password} = req.body;
-
-    try {
-        const user = await User.findOne({email});
-        const passwordMatch = await User.findOne({passwordMatch})
-        if (user && passwordMatch){
-            res.send('Login success')
-        }else {
-           res.send('Login failed') 
+exports.login = async(req, res,next) => {
+    passport.authenticate('local', (err,user,info)=>{
+        if (err){
+            return next(err)
         }
-    } catch (error) {
-        console.log(error);
+        if (!user){
+            return res.render('login', {
+                title : 'Login',
+                user : req.user,
+                error : info.message
+            })
+        }
+        req.logIn (user, (err)=>{
+            if (err){
+                return next(err)
+            }
+            return res.redirect('/')
+        })
     }
+    )(req,res,next)
 }
+
 
 exports.register = async(req,res)=>{
     const {username, password, email} = req.body;
     try {
-      const user = await User.findOne({email});
-      if(user){
-          res.send('There is already an account associated with that e-mail.')
+      const exisingUser = await User.findOne({email});
+      if(exisingUser){
+        res.render ('register', {
+            title : 'Register',
+            user : req.user,
+            error :'User already exists'
+        })
       }else {
-          const newUser = new User({
-              username,
-              password,
-              email
-          })
-          await newUser.save()
-          res.redirect('/auth/login')
+        const hashedPw = await bcrypt.hash(password, 10);
+        const newUser = await  User.create({
+            username, email, password : hashedPw
+        })
+       
+        res.redirect('/auth/login')
       }
     } catch (error) {
-      console.log(error);
+      res.render('register', {
+        title : 'Register',
+        user : req.user,
+        error: error.message
+      })
     }
 }
